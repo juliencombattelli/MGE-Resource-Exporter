@@ -75,12 +75,7 @@ int main(int argc, char *argv[])
 		else
 			totalSize += getFileLength(argv[i]);
 	}
-	// To be sure archive will have enough space, will take the double of the total size of all files
-	// However, for small files (typically less than 32ko), this margin is not sufficient, so we clamp to 64ko
-	if(totalSize < 65536/2)
-		allocateSize = 65536;
-	else
-		allocateSize = totalSize * 2;
+	allocateSize = totalSize;
 
 	// Allocate a memory area large enough to contain the archive
 	std::unique_ptr<char[]> buf(new(std::nothrow) char[allocateSize]);
@@ -174,5 +169,7 @@ static size_t getFileLength(const char *filename)
 {
 	struct stat st;
 	int rc = stat(filename, &st);
-	return rc == 0 ? st.st_size : -1;
+	return rc == 0 ? st.st_blocks*512 : -1;
+	// st.st_blocks contains the number of blocks of 512B allocated for this file
+	// See http://man7.org/linux/man-pages/man2/stat.2.html
 }
