@@ -169,7 +169,11 @@ static size_t getFileLength(const char *filename)
 {
 	struct stat st;
 	int rc = stat(filename, &st);
-	return rc == 0 ? st.st_blocks*512 : -1;
+#if defined(__unix__) || defined(__APPLE__)
+	return rc == 0 ? st_blocks*512 : -1;
+#elif defined(__WIN32)
+	return rc == 0 ? (size_t)((st.st_size+511)/512)*512 : -1;
+#endif
 	// st.st_blocks contains the number of blocks of 512B allocated for this file
 	// See http://man7.org/linux/man-pages/man2/stat.2.html
 }
